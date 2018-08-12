@@ -21,14 +21,16 @@ It is available for Raspberry Pi 2/3 only; Pi Zero is not supported.
 """
 
 from logging import INFO, basicConfig
-from sys import exit, stdout
+from platform import machine
+from sys import exit as _exit
+from sys import stdout
 from threading import Thread
 
 from google.assistant.library.event import EventType
 
-import aiy.assistant.auth_helpers
-import aiy.voicehat
-from aiy.assistant.library import Assistant
+from .aiy.assistant.auth_helpers import get_assistant_credentials
+from .aiy.assistant.library import Assistant
+from .aiy.voicehat import get_button, get_status_ui
 
 basicConfig(level=INFO, format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s")
 
@@ -43,6 +45,10 @@ class VoiceAssistant:
     """
 
     def __init__(self, commands: dict = {}) -> None:
+        if machine() not in ("armv8", "armv7"):
+            if stdout.isatty():
+                print("Can only run on Pi 2 and 3")
+            _exit(-1)
         self._task = Thread(target=self._run_task)
         self._can_start_conversation = False
         self._assistant = None
@@ -56,20 +62,20 @@ class VoiceAssistant:
         self._task.start()
 
     def _run_task(self):
-        credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
-        with Assistant(credentials) as assistant:
+        with Assistant(get_assistant_credentials()) as assistant:
             self._assistant = assistant
             for event in assistant.start():
                 self._process_event(event)
 
     def _process_event(self, event):
-        print(event)
-        status_ui = aiy.voicehat.get_status_ui()
+        if stdout.isatty():
+            print(event)
+        status_ui = get_status_ui()
         if event.type == EventType.ON_START_FINISHED:
             status_ui.status("ready")
             self._can_start_conversation = True
             # Start the voicehat button trigger.
-            aiy.voicehat.get_button().on_press(self._on_button_pressed)
+            get_button().on_press(self._on_button_pressed)
             if stdout.isatty():
                 print(
                     'Say "OK, Google" or press the button, then speak. '
@@ -106,7 +112,7 @@ class VoiceAssistant:
         ):
             if stdout.isatty():
                 print("Fatal Error")
-            exit(1)
+            _exit(1)
 
     def _on_button_pressed(self):
         # Check if we can start a conversation. 'self._can_start_conversation'

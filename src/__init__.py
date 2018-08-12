@@ -1,9 +1,9 @@
 from subprocess import call, check_output
 
-from aiy.audio import say
-
+from .aiy.audio import say
 from .assistant import VoiceAssistant
 from .games import rock_paper_scissors
+from .tetris import play_tetris
 
 
 class Butler(VoiceAssistant):
@@ -12,11 +12,12 @@ class Butler(VoiceAssistant):
     def __init__(self, conf):
         self.config = conf
         super().__init__(
-            {
+            commands={
                 "power off": self.power_off_pi,
                 "reboot": self.reboot_pi,
                 "what is your ip address": self.say_ip,
                 "lets play rock paper scissors": rock_paper_scissors,
+                "play tetris": play_tetris,
             }
         )
 
