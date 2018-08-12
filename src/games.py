@@ -7,7 +7,7 @@ import aiy.audio
 import aiy.cloudspeech
 
 
-def rock_paper_scissors():
+def rock_paper_scissors() -> None:
     """Rock paper scissors game"""
     recognizer = aiy.cloudspeech.get_recognizer()
     computer_choice = randint(1, 3)
