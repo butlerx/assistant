@@ -1,0 +1,13 @@
+[Unit]
+Description=Google voice assistant
+
+[Service]
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+ExecStart=/bin/bash -c 'python3 -u .'
+WorkingDirectory=/home/pi/assistant
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
+<Paste>
